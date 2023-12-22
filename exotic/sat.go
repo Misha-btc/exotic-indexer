@@ -18,35 +18,38 @@ var FirstTransactionRanges = []*ordinals.Range{
 var HitmanRanges = SatingRangesToOrdinalsRanges(hitmanSatingRanges)
 var JpegRanges = SatingRangesToOrdinalsRanges(jpegSatingRanges)
 
-type Sat int64
-
-func (s Sat) Epoch() Epoch {
-	return EpochFromSat(s)
+type Sat struct {
+    ID             int64    // Уникальный идентификатор сатоши
+    TransactionIDs []string // Список идентификаторов транзакций
 }
 
-func (s Sat) Cycle() int64 {
-	return s.Height() / CycleInterval
+func (s *Sat) Epoch() Epoch {
+    return EpochFromSat(s.ID)
 }
 
-func (s Sat) Period() int64 {
-	return s.Height() / DificultyAdjustmentInterval
+func (s *Sat) Cycle() int64 {
+    return s.Height() / CycleInterval
 }
 
-func (s Sat) EpochPosition() int64 {
-	r := s - s.Epoch().GetStartingSat()
-	return int64(r)
+func (s *Sat) Period() int64 {
+    return s.Height() / DificultyAdjustmentInterval
 }
 
-func (s Sat) Height() int64 {
-	r := int64(s.Epoch()) * HalvingInterval
-	sub := s.Epoch().GetSubsidy()
-	p := s.EpochPosition() / sub
-	return p + r
+func (s *Sat) EpochPosition() int64 {
+    r := s.ID - s.Epoch().GetStartingSat()
+    return int64(r)
 }
 
-func (s Sat) IsFirstSatInBlock() bool {
-	sub := s.Epoch().GetSubsidy()
-	return int64(s)%sub == 0
+func (s *Sat) Height() int64 {
+    r := int64(s.Epoch()) * HalvingInterval
+    sub := s.Epoch().GetSubsidy()
+    p := s.EpochPosition() / sub
+    return p + r
+}
+
+func (s *Sat) IsFirstSatInBlock() bool {
+    sub := s.Epoch().GetSubsidy()
+    return int64(s.ID)%sub == 0
 }
 
 func (s Sat) GetRodarmorRarity() Satribute {
@@ -163,4 +166,8 @@ func (s Sat) Satributes() []Satribute {
 	}
 
 	return exotics
+}
+
+func (s *Sat) AddTransactionID(txID string) {
+    s.TransactionIDs = append(s.TransactionIDs, txID)
 }
